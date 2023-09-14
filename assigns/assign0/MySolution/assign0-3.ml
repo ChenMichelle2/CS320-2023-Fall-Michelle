@@ -8,6 +8,7 @@ fun int2str(i0: int): string
 let chr = Char.chr
 let ord = Char.code
 let string_init = String.init
+let string_get(cs, i0) = String.get cs i0
 
 let rec
 divideBy10(x:int): int=
@@ -34,13 +35,25 @@ parseThru(z:int): string =
   if z < 10 then matchtostring(z mod 10)
   (*need to write my own concatenation, use string_init *)
   else parseThru(z/10)^matchtostring(z mod 10)
+  (*else string_init(divideBy10(z))(parseThru(z/10))*)
 ;;
+
+(*
+let concat(x:int)(a:char)(b:char): string = 
+  string_init(divideBy10(x))(matchtostring(x mod 10))
+;;
+*)
+
+(*let toChar(i:int)(str1:string)(str2:string): char =
+  string_get(str1, i)ghf
+;;*)
 
 let int2str(i0: int): string =
   if i0<>0 then parseThru(i0)
   else "0"
 ;;
 
+(*
 let test = int2str(133) 
 ;; 
-
+*)
