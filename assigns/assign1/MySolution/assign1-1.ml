@@ -1,6 +1,5 @@
 
-
-(*
+(**
 assign1-1: 10 points
 Given a natural number n that is not a multiple
 of 10, intrev10(n) is the natural number whose
