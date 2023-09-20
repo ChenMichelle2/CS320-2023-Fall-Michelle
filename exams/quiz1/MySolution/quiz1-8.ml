@@ -15,9 +15,14 @@
  you do not make use of recursion.
 
 *)
-
+let smallest (h:int)(i:int)(j:int)(k:int)(l:int): int =
+  if (h <= l && h <= i && h <= j && h <= k) then h
+  else if (i <= l && i <= h && i <= j && i <= k) then i
+  else if (j <= l && j <= i && j <= h && j <= k) then j
+  else if (k <= l && k <= i && k <= j && k <= h) then k
+  else l
 let sort5: int*int*int*int*int -> int*int*int*int*int =
-  (* YOUR CODE *)
+  (smallest(sort5) 
 
 
 (* ************************************************ *)

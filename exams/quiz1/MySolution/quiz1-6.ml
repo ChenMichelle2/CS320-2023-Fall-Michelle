@@ -4,7 +4,10 @@
 
 let pp x y = fun f -> f(x,y)
 
-let ff = (* WRITE YOUR CODE *)
+let ff = 
+   let sub(a:int)(b:int): int =
+      a-b
+in (ff(a)(b))
 
 (* Give an implementation of ff that
    makes the following assertions pass *)
