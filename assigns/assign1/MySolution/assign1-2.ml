@@ -12,7 +12,24 @@ For instance, if cs1 = "abcde" and cs2 = "1234", then
 string_merge(cs1)(cs2) equals "1234abcde"
 *)
 #use "./../../../classlib/OCaml/MyOCaml.ml";;
-let string_merge(cs1, cs2): string=
-  if cs1 == "" then "yes"
-  else "no"
+let string_merge(cs1:string)(cs2:string): string=
+  let lenCs1 = string_length(cs1) and lenCs2 = string_length(cs2) in 
+  let rec
+    foreach(x: int)(y: int)(work) = 
+    if x < lenCs1 then ( 
+      if y < lenCs2 then
+        let charCs1 = string_get_at(cs1)(x) and charCs2 = string_get_at(cs2)(y) in
+          if charCs1 <= charCs2 
+            then (work(charCs1); foreach(x+1)(y+0)(work))
+          else (work(charCs2); foreach(x+0)(y+1)(work))
+        
+      else int1_foreach(lenCs1-x)
+          (fun i -> work(string_get_at(cs1)(x+i)))
+      )
+    else int1_foreach(lenCs2-y)
+      (fun i -> work(string_get_at(cs2)(y+i)))
+    
+    in
+      string_make_fwork(foreach(0)(0))
 ;;
+(*let test = string_merge("abc")("123");;*)
