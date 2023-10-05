@@ -20,4 +20,10 @@
 # *)
 
 def foreach_to_get_at(foreach): # your implementation below
-
+  def foreach(xs)(i):
+    if i == -1:
+      return exception
+    else: 
+      for x in xs:
+        if (x-1) == i:
+          return x

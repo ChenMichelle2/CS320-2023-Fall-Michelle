@@ -16,5 +16,9 @@ match xs with
 *)
 
 (* ************************************************ *)
-
-let list_append(xs: 'a list): 'a list = ....
+ 
+let rec 
+  list_append(xs: 'a list)(ys: 'a list): 'a list = 
+    if list_foldleft(ys) = 0 then list_append(xs)(ys)
+    else list_append(list_foldleft(xs))(list_foldleft(ys))
+    

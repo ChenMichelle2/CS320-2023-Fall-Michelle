@@ -12,3 +12,5 @@ is empty, raise the Empty exception
 
 exception Empty
 let list_last(xs: 'a list): 'a = ....
+  list_foldright(xs) -> xs(x1)
+  

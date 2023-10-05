@@ -11,4 +11,5 @@ is empty, raise the Empty exception
 (* ************************************************ *)
 
 exception Empty
-let list_last(xs: 'a list): 'a = ....
+let list_last(xs: 'a list): 'a = 
+  list_foldleft(xs) -> xs(x0)
