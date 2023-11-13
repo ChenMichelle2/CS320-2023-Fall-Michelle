@@ -47,4 +47,23 @@ let rec trim cs =
 
 *)
 let parse (s : string) : expr option = (* YOUR CODE *)
+parse_expr (explode s)
+let explode (s: string) : char list = 
+  let rec expl i l = 
+    if i < 0 then l 
+    else expl (i - 1) (String.get s i :: l) in 
+  expl (String.length s - 1) []
+
+let rec parse_int(x:char) : expr option = 
+
+let rec parse_expr(s:char list) : expr option =
+  match s with
+  | x::'add'::tl -> (match parse_int x, parse expr tl with
+                    |Some (Digit a), Some e ->  Some (Add (a,e))
+                    | _ -> None)
+                      )
+    | _ -> None
+
+let parse (s : string) : expr option = 
+  parse_expr (explode s)
   
