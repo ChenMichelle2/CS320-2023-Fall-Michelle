@@ -1,10 +1,16 @@
 #use "MyOCaml.ml";;
-let sexpr_parse     (s : string) : sexpr option = 
-  match sexpr_to_string (parse_expr ()) s with
+type sexpr =
+  | SInt of int        (* 1, 2, 3, 4 ...  *)
+  | SAdd of sexpr list (* (add e1 e2 ...) *)
+  | SMul of sexpr list (* (mul e1 e2 ...) *)
+
+let sexpr_parse  (s : string) : sexpr option = 
+  match sexpr_to_string (parse_sexpr ()) s with
     | Some (e, []) -> Some e
     | _ -> None
-let sexpr_to_string (e : sexpr)  : string       = 
-  string_make_fwork(fun work -> string_foreach e work)
+
+let sexpr_to_string (e : sexpr)  : string = 
+  string_make_fwork(fun work ->  e work)
 
 let rec parse_sexpr () : sexpr parser =
   sexpr_int () <|> sexpr_add () <|> sexpr_mul ()
