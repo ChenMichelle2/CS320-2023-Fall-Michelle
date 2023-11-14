@@ -4,7 +4,7 @@ let sexpr_to_string (e : sexpr)  : string       =
   string_make_fwork(fun work -> list_foreach e work)
 
 let sexpr_parse     (s : string) : sexpr option = 
-  match string_parse (parse_expr ()) s with
+  match sexpr_to_string (parse_expr ()) s with
     | Some (e, []) -> Some e
     | _ -> None
 
