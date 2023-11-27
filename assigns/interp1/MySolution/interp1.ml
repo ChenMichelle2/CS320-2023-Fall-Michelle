@@ -11,5 +11,56 @@ Notes:
 2. You may NOT use OCaml standard library functions directly.
 
 *)
+type stack_op =
+  | Push of int
+  | Add
+  | Sub
+  | Mul
+  | Div
 
-let interp (s : string) : string list option = (* YOUR CODE *)
+let apply_op (stack : int list) (op : stack_op) : int list =
+  match op with
+  | Push x -> x :: stack
+  | Add ->
+    (match stack with
+    | y :: x :: rest -> (x + y) :: rest
+    | _ -> failwith "Not enough operands for addition")
+  | Sub ->
+    (match stack with
+    | y :: x :: rest -> (x - y) :: rest
+    | _ -> failwith "Not enough operands for subtraction")
+  | Mul ->
+    (match stack with
+    | y :: x :: rest -> (x * y) :: rest
+    | _ -> failwith "Not enough operands for multiplication")
+  | Div ->
+    (match stack with
+    | y :: x :: rest -> (x / y) :: rest
+    | _ -> failwith "Not enough operands for division")
+
+let parse_program (program : string) : stack_op list =
+  let parse_op s =
+    match s with
+    | "add" -> Add
+    | "sub" -> Sub
+    | "mul" -> Mul
+    | "div" -> Div
+    | _ ->
+      try Push (int_of_string s)
+      with Failure _ -> failwith ("Invalid operation: " ^ s)
+  in
+  List.map parse_op (String.split_on_char ' ' program)
+
+let interp (s : string) : string list option =
+  try
+    let program = parse_program s in
+    let rec eval_stack (stack : int list) (ops : stack_op list) : int list =
+      match ops with
+      | [] -> stack
+      | op :: rest -> eval_stack (apply_op stack op) rest
+    in
+    let result_stack = eval_stack [] program in
+    Some (List.map string_of_int (List.rev result_stack))
+  with
+  | Failure msg -> None
+
