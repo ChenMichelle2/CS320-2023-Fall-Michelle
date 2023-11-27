@@ -47,9 +47,7 @@ let parse_program (program : string) : stack_op list =
     | "div" -> Div
     | _ ->
       try Push (int_of_string s)
-    with
-      | Failure msg -> None
-
+      with Failure msg -> None
   in
   List.map parse_op (String.split_on_char ' ' program)
 
