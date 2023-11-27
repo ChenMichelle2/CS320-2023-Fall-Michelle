@@ -15,8 +15,16 @@ type stack_op =
   | Push of int
   | Add
   | Sub
-  | Mul
-  | Div
+  | Trace
+  | Stack
+  | Program
+  | Reduction
+
+type program = command list
+
+type stack = value list
+type trace = string list
+type config = stack * trace * program
 
 let apply_op (stack : int list) (op : stack_op) : int list =
   match op with
@@ -24,30 +32,21 @@ let apply_op (stack : int list) (op : stack_op) : int list =
   | Add ->
     (match stack with
     | y :: x :: rest -> (x + y) :: rest
-    | _ -> failwith "Not enough operands for addition")
+    )
   | Sub ->
     (match stack with
     | y :: x :: rest -> (x - y) :: rest
-    | _ -> failwith "Not enough operands for subtraction")
-  | Mul ->
-    (match stack with
-    | y :: x :: rest -> (x * y) :: rest
-    | _ -> failwith "Not enough operands for multiplication")
-  | Div ->
-    (match stack with
-    | y :: x :: rest -> (x / y) :: rest
-    | _ -> failwith "Not enough operands for division")
+    )
+
 
 let parse_program (program : string) : stack_op list =
   let parse_op s =
     match s with
-    | "add" -> Add
-    | "sub" -> Sub
-    | "mul" -> Mul
-    | "div" -> Div
-    | _ ->
+    | "Add" -> Add
+    | "Sub" -> Sub
       try Push (int_of_string s)
-      with Failure _ -> failwith ("Invalid operation: " ^ s)
+   with
+   | Failure msg -> None
   in
   List.map parse_op (String.split_on_char ' ' program)
 
