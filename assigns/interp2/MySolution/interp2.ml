@@ -81,7 +81,7 @@ let parse_coms = many (parse_com << keyword ";")
 type stack = const list
 type trace = string list
 type prog = coms
-type coms = com list
+(*type coms = com list*)
 
 let rec str_of_nat (n : int) : string =
    let d = n mod 10 in 
@@ -103,7 +103,7 @@ let rec str_of_nat (n : int) : string =
    | Bool false -> "False"
    | Unit -> "Unit"
  
- let rec eval (s : stack) (t : trace) (p : prog) : trace =
+ let rec eval (s : stack) (t : trace) (v: variable) (p : prog) : trace =
    match p with
    (* termination state returns the trace *)
    | [] -> t
