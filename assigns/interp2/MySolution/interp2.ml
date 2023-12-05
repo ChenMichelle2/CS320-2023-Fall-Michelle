@@ -16,7 +16,7 @@ type const =
   | Int of int
   | Bool of bool
   | Unit
-  | Sym of char
+  | Sym 
 
 type com =
   | Push of const | Pop | Swap | Trace
