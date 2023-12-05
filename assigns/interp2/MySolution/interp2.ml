@@ -67,12 +67,113 @@ let parse_sym =
    (keyword "Or" >> pure Or) <|>
    (keyword "Not" >> pure Not) <|>
    (keyword "Lt" >> pure Lt) <|>
-   (keyword "Gt" >> pure Gt)
+   (keyword "Gt" >> pure Gt) <|>
+   (keyword "If" >> parse_coms >> keyword "Else" >> parse_coms >> pure End) <|>
+   (keyword "End" >> pure End) <|>
+   (keyword "Bind" >> pure Bind) <|>
+   (keyword "Lookup" >> pure Lookup) <|>
+   (keyword "Fun" >> parse_coms >> pure End) <|>
+   (keyword "Call" >> pure Call) <|>
+   (keyword "Return" >> pure Return)
    
+let parse_coms = many (parse_com << keyword ";")
  
- let parse_coms = many (parse_com << keyword ";")
- 
-
+type stack = const list
+type trace = string list
+type prog = coms
 type coms = com list
 
-let interp (s : string) : string list option = (* YOUR CODE *)
+let rec str_of_nat (n : int) : string =
+   let d = n mod 10 in 
+   let n0 = n / 10 in
+   let s = str (chr (d + ord '0')) in 
+   if 0 < n0 then
+     string_append (str_of_nat n0) s
+   else s
+ 
+ let str_of_int (n : int) : string = 
+   if n < 0 then
+     string_append "-" (str_of_nat (-n))
+   else str_of_nat n
+ 
+ let toString (c : const) : string =
+   match c with
+   | Int i -> str_of_int i
+   | Bool true -> "True"
+   | Bool false -> "False"
+   | Unit -> "Unit"
+ 
+ let rec eval (s : stack) (t : trace) (p : prog) : trace =
+   match p with
+   (* termination state returns the trace *)
+   | [] -> t
+   | Push c :: p0 (* PushStack *) -> eval (c :: s) t p0
+   | Pop :: p0 ->
+     (match s with
+      | _ :: s0 (* PopStack *) -> eval s0 t p0
+      | []      (* PopError *) -> eval [] ("Panic" :: t) [])
+   | Trace :: p0 ->
+     (match s with
+      | c :: s0 (* TraceStack *) -> eval (Unit :: s0) (toString c :: t) p0
+      | []      (* TraceError *) -> eval [] ("Panic" :: t) [])
+   | Add :: p0 ->
+     (match s with
+      | Int i :: Int j :: s0 (* AddStack *)  -> eval (Int (i + j) :: s0) t p0
+      | _ :: _ :: s0         (* AddError1 *) -> eval [] ("Panic" :: t) []
+      | []                   (* AddError2 *) -> eval [] ("Panic" :: t) []
+      | _ :: []              (* AddError3 *) -> eval [] ("Panic" :: t) [])
+   | Sub :: p0 ->
+     (match s with
+      | Int i :: Int j :: s0 (* SubStack *)  -> eval (Int (i - j) :: s0) t p0
+      | _ :: _ :: s0         (* SubError1 *) -> eval [] ("Panic" :: t) []
+      | []                   (* SubError2 *) -> eval [] ("Panic" :: t) []
+      | _ :: []              (* SubError3 *) -> eval [] ("Panic" :: t) [])
+   | Mul :: p0 ->
+     (match s with
+      | Int i :: Int j :: s0 (* MulStack *)  -> eval (Int (i * j) :: s0) t p0
+      | _ :: _ :: s0         (* MulError1 *) -> eval [] ("Panic" :: t) []
+      | []                   (* MulError2 *) -> eval [] ("Panic" :: t) []
+      | _ :: []              (* MulError3 *) -> eval [] ("Panic" :: t) [])
+   | Div :: p0 ->
+     (match s with
+      | Int i :: Int 0 :: s0 (* DivError0 *) -> eval [] ("Panic" :: t) []
+      | Int i :: Int j :: s0 (* DivStack *)  -> eval (Int (i / j) :: s0) t p0
+      | _ :: _ :: s0         (* DivError1 *) -> eval [] ("Panic" :: t) []
+      | []                   (* DivError2 *) -> eval [] ("Panic" :: t) []
+      | _ :: []              (* DivError3 *) -> eval [] ("Panic" :: t) [])
+   | And :: p0 ->
+     (match s with
+      | Bool a :: Bool b :: s0 (* AndStack *)  -> eval (Bool (a && b) :: s0) t p0
+      | _ :: _ :: s0           (* AndError1 *) -> eval [] ("Panic" :: t) []
+      | []                     (* AndError2 *) -> eval [] ("Panic" :: t) []
+      | _ :: []                (* AndError3 *) -> eval [] ("Panic" :: t) [])
+   | Or :: p0 ->
+     (match s with
+      | Bool a :: Bool b :: s0 (* OrStack *)  -> eval (Bool (a || b) :: s0) t p0
+      | _ :: _ :: s0           (* OrError1 *) -> eval [] ("Panic" :: t) []
+      | []                     (* OrError2 *) -> eval [] ("Panic" :: t) []
+      | _ :: []                (* OrError3 *) -> eval [] ("Panic" :: t) [])
+   | Not :: p0 ->
+     (match s with
+      | Bool a :: s0 (* NotStack  *) -> eval (Bool (not a) :: s0) t p0
+      | _ :: s0      (* NotError1 *) -> eval [] ("Panic" :: t) []
+      | []           (* NotError2 *) -> eval [] ("Panic" :: t) [])
+   | Lt :: p0 ->
+     (match s with
+      | Int i :: Int j :: s0 (* LtStack *)  -> eval (Bool (i < j) :: s0) t p0
+      | _ :: _ :: s0         (* LtError1 *) -> eval [] ("Panic" :: t) []
+      | []                   (* LtError2 *) -> eval [] ("Panic" :: t) []
+      | _ :: []              (* LtError3 *) -> eval [] ("Panic" :: t) [])
+   | Gt :: p0 ->
+     (match s with
+      | Int i :: Int j :: s0 (* GtStack *)  -> eval (Bool (i > j) :: s0) t p0
+      | _ :: _ :: s0         (* GtError1 *) -> eval [] ("Panic" :: t) []
+      | []                   (* GtError2 *) -> eval [] ("Panic" :: t) []
+      | _ :: []              (* GtError3 *) -> eval [] ("Panic" :: t) [])
+
+let interp (s : string) : string list option =
+   match string_parse (whitespaces >> parse_coms) s with
+   | Some (p, []) -> Some (eval [] [] p)
+   | _ -> None
+
+
