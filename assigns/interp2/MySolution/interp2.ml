@@ -1,4 +1,4 @@
-#use "./../../../classlib/OCaml/MyOCaml.ml";;
+#use "./../../../../classlib/OCaml/MyOCaml.ml";;
 
 (*
 
@@ -16,7 +16,7 @@ type const =
   | Int of int
   | Bool of bool
   | Unit
-  | Sym 
+ (* | Sym *)
 
 type com =
   | Push of const | Pop | Swap | Trace
