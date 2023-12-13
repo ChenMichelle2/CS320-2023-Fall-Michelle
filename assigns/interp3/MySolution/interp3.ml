@@ -328,4 +328,63 @@ let parse_prog (s : string) : expr =
   | Some (m, []) -> scope_expr m
   | _ -> raise SyntaxError
 
-let compile (s : string) : string = (* YOUR CODE *)
+  let compile (s : string) : string =
+    let ast = parse_prog s in
+  
+    let rec compile_expr (e : expr) : string =
+      match e with
+      | Int n -> string_of_int n
+      | Bool b -> if b then "true" else "false"
+      | Unit -> "()"
+      | UOpr (opr, m) -> compile_unary_opr opr m
+      | BOpr (opr, m, n) -> compile_binary_opr opr m n
+      | Var x -> x
+      | Fun (f, x, m) -> compile_function f x m
+      | App (m, n) -> compile_app m n
+      | Let (x, m, n) -> compile_let x m n
+      | Seq (m, n) -> compile_seq m n
+      | Ifte (m, n1, n2) -> compile_ifte m n1 n2
+      | Trace m -> "trace(" ^ compile_expr m ^ ")"
+  
+    and compile_unary_opr (opr : uopr) (m : expr) : string =
+      match opr with
+      | Neg -> "-(" ^ compile_expr m ^ ")"
+      | Not -> "not(" ^ compile_expr m ^ ")"
+  
+    and compile_binary_opr (opr : bopr) (m : expr) (n : expr) : string =
+      let op_str =
+        match opr with
+        | Add -> "+"
+        | Sub -> "-"
+        | Mul -> "*"
+        | Div -> "/"
+        | Mod -> "mod"
+        | And -> "&&"
+        | Or -> "||"
+        | Lt -> "<"
+        | Gt -> ">"
+        | Lte -> "<="
+        | Gte -> ">="
+        | Eq -> "="
+      in
+      "(" ^ compile_expr m ^ " " ^ op_str ^ " " ^ compile_expr n ^ ")"
+  
+    and compile_function (f : string) (x : string) (m : expr) : string =
+      "fun " ^ f ^ " " ^ x ^ " -> " ^ compile_expr m
+  
+    and compile_app (m : expr) (n : expr) : string =
+      "(" ^ compile_expr m ^ " " ^ compile_expr n ^ ")"
+  
+    and compile_let (x : string) (m : expr) (n : expr) : string =
+      "let " ^ x ^ " = " ^ compile_expr m ^ " in " ^ compile_expr n
+  
+    and compile_seq (m : expr) (n : expr) : string =
+      compile_expr m ^ "; " ^ compile_expr n
+  
+    and compile_ifte (m : expr) (n1 : expr) (n2 : expr) : string =
+      "if " ^ compile_expr m ^ " then " ^ compile_expr n1 ^ " else " ^ compile_expr n2
+    in
+  
+    compile_expr ast
+  
+  
