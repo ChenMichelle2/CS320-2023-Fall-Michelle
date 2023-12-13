@@ -328,70 +328,69 @@ let parse_prog (s : string) : expr =
   | Some (m, []) -> scope_expr m
   | _ -> raise SyntaxError
 
+  let rec compile_expr (e : expr) (var_stack : scope) : string =
+    match e with
+    | Int n -> string_of_int n
+    | Bool b -> if b then "true" else "false"
+    | Unit -> "()"
+    | UOpr (opr, m) -> compile_unary_opr opr m var_stack
+    | BOpr (opr, m, n) -> compile_binary_opr opr m n var_stack
+    | Var x -> find_var var_stack x
+    | Fun (f, x, m) -> compile_function f x m var_stack
+    | App (m, n) -> compile_app m n var_stack
+    | Let (x, m, n) -> compile_let x m n var_stack
+    | Seq (m, n) -> compile_seq m n var_stack
+    | Ifte (m, n1, n2) -> compile_ifte m n1 n2 var_stack
+    | Trace m -> "trace(" ^ compile_expr m var_stack ^ ")"
+  
+  and compile_unary_opr (opr : uopr) (m : expr) (var_stack : scope) : string =
+    match opr with
+    | Neg -> "-(" ^ compile_expr m var_stack ^ ")"
+    | Not -> "not(" ^ compile_expr m var_stack ^ ")"
+  
+  and compile_binary_opr (opr : bopr) (m : expr) (n : expr) (var_stack : scope) : string =
+    let op_str =
+      match opr with
+      | Add -> "+"
+      | Sub -> "-"
+      | Mul -> "*"
+      | Div -> "/"
+      | Mod -> "mod"
+      | And -> "&&"
+      | Or -> "||"
+      | Lt -> "<"
+      | Gt -> ">"
+      | Lte -> "<="
+      | Gte -> ">="
+      | Eq -> "="
+    in
+    "(" ^ compile_expr m var_stack ^ " " ^ op_str ^ " " ^ compile_expr n var_stack ^ ")"
+  
+  and compile_function (f : string) (x : string) (m : expr) (var_stack : scope) : string =
+    let fvar = find_var var_stack f in
+    let xvar = find_var var_stack x in
+    "fun " ^ fvar ^ " " ^ xvar ^ " -> " ^ compile_expr m ((f, fvar) :: (x, xvar) :: var_stack)
+  
+  and compile_app (m : expr) (n : expr) (var_stack : scope) : string =
+    "(" ^ compile_expr m var_stack ^ " " ^ compile_expr n var_stack ^ ")"
+  
+  and compile_let (x : string) (m : expr) (n : expr) (var_stack : scope) : string =
+    let xvar = find_var var_stack x in
+    "let " ^ xvar ^ " = " ^ compile_expr m var_stack ^ " in " ^ compile_expr n ((x, xvar) :: var_stack)
+  
+  and compile_seq (m : expr) (n : expr) (var_stack : scope) : string =
+    compile_expr m var_stack ^ "; " ^ compile_expr n var_stack
+  
+  and compile_ifte (m : expr) (n1 : expr) (n2 : expr) (var_stack : scope) : string =
+    "if " ^ compile_expr m var_stack ^ " then " ^ compile_expr n1 var_stack ^ " else " ^ compile_expr n2 var_stack
+  
+  and find_var (var_stack : scope) (x : string) : string =
+    match List.find_opt (fun v -> snd v = x) var_stack with
+    | Some (_, x_var) -> x_var
+    | None -> raise (UnboundVariable x)
+  
   let compile (s : string) : string =
     let ast = parse_prog s in
-  
-    let rec compile_expr (e : expr) (var_stack : string list) : string =
-      match e with
-      | Int n -> string_of_int n
-      | Bool b -> if b then "true" else "false"
-      | Unit -> "()"
-      | UOpr (opr, m) -> compile_unary_opr opr m var_stack
-      | BOpr (opr, m, n) -> compile_binary_opr opr m n var_stack
-      | Var x -> find_var var_stack x
-      | Fun (f, x, m) -> compile_function f x m var_stack
-      | App (m, n) -> compile_app m n var_stack
-      | Let (x, m, n) -> compile_let x m n var_stack
-      | Seq (m, n) -> compile_seq m n var_stack
-      | Ifte (m, n1, n2) -> compile_ifte m n1 n2 var_stack
-      | Trace m -> "trace(" ^ compile_expr m var_stack ^ ")"
-  
-    and compile_unary_opr (opr : uopr) (m : expr) (var_stack : string list) : string =
-      match opr with
-      | Neg -> "-(" ^ compile_expr m var_stack ^ ")"
-      | Not -> "not(" ^ compile_expr m var_stack ^ ")"
-  
-    and compile_binary_opr (opr : bopr) (m : expr) (n : expr) (var_stack : string list) : string =
-      let op_str =
-        match opr with
-        | Add -> "+"
-        | Sub -> "-"
-        | Mul -> "*"
-        | Div -> "/"
-        | Mod -> "mod"
-        | And -> "&&"
-        | Or -> "||"
-        | Lt -> "<"
-        | Gt -> ">"
-        | Lte -> "<="
-        | Gte -> ">="
-        | Eq -> "="
-      in
-      "(" ^ compile_expr m var_stack ^ " " ^ op_str ^ " " ^ compile_expr n var_stack ^ ")"
-  
-    and compile_function (f : string) (x : string) (m : expr) (var_stack : string list) : string =
-      "fun " ^ f ^ " " ^ x ^ " -> " ^ compile_expr m (x :: f :: var_stack)
-  
-    and compile_app (m : expr) (n : expr) (var_stack : string list) : string =
-      "(" ^ compile_expr m var_stack ^ " " ^ compile_expr n var_stack ^ ")"
-  
-    and compile_let (x : string) (m : expr) (n : expr) (var_stack : string list) : string =
-      let x_var = new_var x in
-      "let " ^ x_var ^ " = " ^ compile_expr m var_stack ^ " in " ^ compile_expr n (x_var :: var_stack)
-  
-    and compile_seq (m : expr) (n : expr) (var_stack : string list) : string =
-      compile_expr m var_stack ^ "; " ^ compile_expr n var_stack
-  
-    and compile_ifte (m : expr) (n1 : expr) (n2 : expr) (var_stack : string list) : string =
-      "if " ^ compile_expr m var_stack ^ " then " ^ compile_expr n1 var_stack ^ " else " ^ compile_expr n2 var_stack
-  
-    and find_var (var_stack : string list) (x : string) : string =
-      match List.find_opt (fun v -> snd v = x) var_stack with
-      | Some (_, x_var) -> x_var
-      | None -> raise (UnboundVariable x)
-  
-    in
-  
-    compile_expr ast []
-  
-  
+    let stack_ast = compile_expr ast [] in
+    stack_ast
+    
