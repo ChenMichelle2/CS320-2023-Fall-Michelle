@@ -11,6 +11,7 @@ Notes:
 2. You may NOT use OCaml standard library functions directly.
 
 *)
+<<<<<<< HEAD
 (* abstract syntax tree of interp2 *)
 type const =
   | Int of int
@@ -177,3 +178,7 @@ let interp (s : string) : string list option =
    | _ -> None
 
 
+=======
+
+let interp (s : string) : string list option = (* YOUR CODE *)
+>>>>>>> upstream/main
